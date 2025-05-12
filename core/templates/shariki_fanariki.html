@@ -1,0 +1,737 @@
+{% extends 'base.html' %}
+
+{% block title %}Шарики-моргалки{% endblock %}
+
+{% block extra_css %}
+<style>
+    #leaderboard table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    #leaderboard th, #leaderboard td {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    #leaderboard th {
+        text-align: left;
+    }
+    #leaderboard tr:nth-child(even) {
+        background: rgba(255,255,255,0.05);
+    }
+</style>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow: hidden;
+        background: #f0f0f0;
+    }
+    
+    #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    #virtual-cursor {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: red;
+        position: absolute;
+        pointer-events: none;
+        z-index: 1000;
+        transition: transform 0.1s ease;
+        will-change: transform;
+        display: none;
+    }
+    
+    .ball {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 900;
+        transform: translate(-50%, -50%);
+    }
+    
+    #score-display {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: #231f20;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px 20px;
+        border-radius: 10px;
+        z-index: 1100;
+    }
+    
+    #timer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        color: #231f20;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 10px 20px;
+        border-radius: 10px;
+        z-index: 1100;
+    }
+    
+    #start-screen, #end-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        color: white;
+    }
+    
+    #end-screen {
+        display: none;
+    }
+    
+    .game-button {
+        padding: 15px 30px;
+        font-size: 18px;
+        background: #0f717c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background 0.3s;
+    }
+    
+    .game-button:hover {
+        background: #0d5d66;
+    }
+    
+    input {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: 2px solid #0f717c;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        width: 80%;
+        max-width: 300px;
+    }
+    
+    #leaderboard {
+        margin-top: 30px;
+        width: 80%;
+        max-width: 500px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .settings-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(35, 31, 32, 0.95);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        z-index: 1100;
+        width: 280px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        display: none;
+    }
+    
+    .settings-panel.active {
+        display: block;
+    }
+    
+    .control-group {
+        margin-bottom: 15px;
+    }
+    
+    .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .settings-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(35, 31, 32, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 1101;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    input[type="range"] {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: #ddd;
+        outline: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #0f717c;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="game-container">
+    <button class="settings-toggle" id="settings-toggle">⚙️</button>
+    <div class="settings-panel" id="settings-panel">
+        <h3>Настройки игры</h3>
+        
+        <div class="control-group">
+            <label for="ballSizeSlider">
+                Размер шариков: <span id="ballSizeValue">80-140</span>px
+            </label>
+            <input type="range" id="ballSizeMinSlider" min="40" max="120" step="5" value="80">
+            <input type="range" id="ballSizeMaxSlider" min="80" max="200" step="5" value="140">
+        </div>
+        
+        <div class="control-group">
+            <label for="ballSpeedSlider">
+                Скорость шариков: <span id="ballSpeedValue">1-3</span>x
+            </label>
+            <input type="range" id="ballSpeedMinSlider" min="0.5" max="2" step="0.1" value="1">
+            <input type="range" id="ballSpeedMaxSlider" min="1.5" max="5" step="0.1" value="3">
+        </div>
+        
+        <div class="control-group">
+            <label for="ballCountSlider">
+                Количество шариков: <span id="ballCountValue">100</span>
+            </label>
+            <input type="range" id="ballCountSlider" min="30" max="200" step="10" value="100">
+        </div>
+        
+        <div class="control-group">
+            <label for="blinkSensitivitySlider">
+                Чувствительность моргания: <span id="blinkSensitivityValue">0.5</span>
+            </label>
+            <input type="range" id="blinkSensitivitySlider" min="0.1" max="0.9" step="0.1" value="0.5">
+        </div>
+        <div class="control-group">
+            <label for="turnSensitivitySlider">
+                Чувствительность поворота: <span id="turnSensitivityValue">1.0</span>
+            </label>
+            <input type="range" id="turnSensitivitySlider" min="0.5" max="2.0" step="0.1" value="1.0">
+        </div>
+    </div>
+    <video class="input_video" style="display:none;" playsinline muted autoplay></video>
+    <canvas class="output_canvas" width="640px" height="480px" style="display:none;"></canvas>
+    
+    <div id="virtual-cursor"></div>
+    <div id="score-display">Очки: 0</div>
+    <div id="timer">Время: 60</div>
+    
+    <div id="start-screen">
+        <h1>Шарики-моргалки</h1>
+        <p>Разбивайте шарики, моргая на них курсором!</p>
+        <input type="text" id="player-name" placeholder="Введите ваше имя" maxlength="20">
+        <button class="game-button" id="start-button">Начать игру</button>
+    </div>
+    
+    <div id="end-screen">
+        <h1>Игра окончена!</h1>
+        <p id="final-score">Ваш счет: 0</p>
+        <button class="game-button" id="restart-button">Играть снова</button>
+        <div id="leaderboard">
+            <h3>Турнирная таблица</h3>
+            <div id="scores-list"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+<script>
+// Конфигурация игры
+const defaultConfig = {
+    gameDuration: 60,
+    ballSpawnRate: 1000,
+    ballCount: 100,
+    ballSizeMin: 80,
+    ballSizeMax: 140,
+    ballSpeedMin: 1,
+    ballSpeedMax: 3,  // Увеличили максимальную скорость
+    blinkSensitivity: 0.5,
+    blinkDelay: 500,
+    turnSensitivity: 1.5  // Добавили чувствительность поворота
+};
+const config = {...defaultConfig};
+
+// Состояние игры
+const gameState = {
+    score: 0,
+    timeLeft: config.gameDuration,
+    isPlaying: false,
+    balls: [],
+    lastBlink: 0,
+    eyeBaseline: null,
+    eyeHistory: [],
+    playerName: ''
+    {% comment %} cursorSmoothing: { x: 0, y: 0 } {% endcomment %}
+};
+
+// Элементы DOM
+const elements = {
+    gameContainer: document.getElementById('game-container'),
+    cursor: document.getElementById('virtual-cursor'),
+    scoreDisplay: document.getElementById('score-display'),
+    timer: document.getElementById('timer'),
+    startScreen: document.getElementById('start-screen'),
+    endScreen: document.getElementById('end-screen'),
+    finalScore: document.getElementById('final-score'),
+    playerName: document.getElementById('player-name'),
+    startButton: document.getElementById('start-button'),
+    restartButton: document.getElementById('restart-button'),
+    scoresList: document.getElementById('scores-list'),
+    video: document.querySelector('.input_video'),
+    canvas: document.querySelector('.output_canvas')
+};
+
+// API эндпоинт (замените на ваш реальный API)
+const API_URL = '/api/scores';
+
+// Инициализация FaceMesh
+const faceMesh = new FaceMesh({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+});
+
+faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.7,
+    selfieMode: true
+});
+
+// Инициализация камеры
+const camera = new Camera(elements.video, {
+    onFrame: async () => {
+        try {
+            await faceMesh.send({ image: elements.video });
+        } catch (error) {
+            console.error('FaceMesh error:', error);
+        }
+    },
+    width: 1280,
+    height: 720,
+    facingMode: 'user'
+});
+
+// Запуск игры
+function startGame() {
+    gameState.score = 0;
+    gameState.timeLeft = config.gameDuration;
+    gameState.isPlaying = true;
+    gameState.balls = [];
+    gameState.eyeBaseline = null;
+    gameState.eyeHistory = [];
+    
+    gameState.playerName = elements.playerName.value.trim() || 'Аноним';
+    
+    elements.startScreen.style.display = 'none';
+    elements.endScreen.style.display = 'none';
+    elements.scoreDisplay.textContent = `Очки: ${gameState.score}`;
+    elements.timer.textContent = `Время: ${gameState.timeLeft}`;
+    initSettingsPanel(); 
+    // Очистка шариков
+    document.querySelectorAll('.ball').forEach(ball => ball.remove());
+    
+    // Запуск таймера
+    const timer = setInterval(() => {
+        gameState.timeLeft--;
+        elements.timer.textContent = `Время: ${gameState.timeLeft}`;
+        
+        if (gameState.timeLeft <= 0) {
+            clearInterval(timer);
+            endGame();
+        }
+    }, 1000);
+    
+    // Генерация шариков
+    const ballGenerator = setInterval(() => {
+        if (!gameState.isPlaying) {
+            clearInterval(ballGenerator);
+            return;
+        }
+        
+        if (gameState.balls.length < config.ballCount) {
+            createBall();
+        }
+    }, config.ballSpawnRate);
+    
+    // Запуск камеры
+    elements.cursor.style.display = 'block';
+    camera.start().catch(error => {
+        console.error('Camera Error:', error);
+        alert('Не удалось получить доступ к камере');
+    });
+}
+
+// Завершение игры
+function endGame() {
+    gameState.isPlaying = false;
+    camera.stop();
+    elements.cursor.style.display = 'none';
+    
+    elements.finalScore.textContent = `Ваш счет: ${gameState.score}`;
+    elements.endScreen.style.display = 'flex';
+    
+    // Отправка результатов на сервер
+    submitScore(gameState.playerName, gameState.score);
+    
+    // Загрузка турнирной таблицы
+    fetchLeaderboard();
+}
+
+// Создание шарика
+function createBall() {
+    const ball = document.createElement('div');
+    ball.className = 'ball';
+    
+    // Случайные параметры шарика
+    const size = randomBetween(config.ballSizeMin, config.ballSizeMax);
+    const x = randomBetween(0, 100);
+    const color = getRandomColor();
+    const speed = randomBetween(config.ballSpeedMin, config.ballSpeedMax);
+    const angle = randomBetween(0, Math.PI * 2);
+    
+    ball.style.width = `${size}px`;
+    ball.style.height = `${size}px`;
+    ball.style.backgroundColor = color;
+    ball.style.left = `${x}%`;
+    ball.style.top = '100%';
+    
+    elements.gameContainer.appendChild(ball);
+    
+    // Сохраняем данные шарика
+    const ballData = {
+        element: ball,
+        x: parseFloat(x),
+        y: 100,
+        speed: speed,
+        angle: angle,
+        size: size
+    };
+    
+    gameState.balls.push(ballData);
+    
+    // Анимация движения шарика
+    const moveBall = () => {
+        if (!gameState.isPlaying) return;
+        
+        ballData.x += Math.cos(ballData.angle) * ballData.speed;
+        ballData.y -= Math.sin(ballData.angle) * ballData.speed;
+        
+        ball.style.left = `${ballData.x}%`;
+        ball.style.top = `${ballData.y}%`;
+        
+        // Удаление шарика, если он вышел за пределы экрана
+        if (ballData.y < -10 || ballData.x < -10 || ballData.x > 110) {
+            removeBall(ballData);
+            return;
+        }
+        
+        requestAnimationFrame(moveBall);
+    };
+    
+    requestAnimationFrame(moveBall);
+}
+
+// Удаление шарика
+function removeBall(ballData) {
+    const index = gameState.balls.indexOf(ballData);
+    if (index !== -1) {
+        gameState.balls.splice(index, 1);
+        ballData.element.remove();
+    }
+}
+
+// Проверка попадания по шарику
+function checkBallHit(x, y) {
+    const cursorRadius = 40;
+    
+    for (let i = gameState.balls.length - 1; i >= 0; i--) {
+        const ball = gameState.balls[i];
+        const ballRect = ball.element.getBoundingClientRect();
+        const ballCenterX = ballRect.left + ballRect.width / 2;
+        const ballCenterY = ballRect.top + ballRect.height / 2;
+        
+        const distance = Math.sqrt(
+            Math.pow(x - ballCenterX, 2) + 
+            Math.pow(y - ballCenterY, 2)
+        );
+        
+        if (distance < (ballRect.width / 2 + cursorRadius)) {
+            // Попадание!
+            gameState.score += Math.round(100 - ball.size);
+            elements.scoreDisplay.textContent = `Очки: ${gameState.score}`;
+            
+            // Анимация взрыва
+            ball.element.style.transform = 'scale(1.5)';
+            ball.element.style.opacity = '0';
+            setTimeout(() => {
+                removeBall(ball);
+            }, 200);
+            
+            return true;
+        }
+    }
+    return false;
+}
+// Функция для обновления параметров из слайдеров
+function updateConfigFromSliders() {
+    config.ballSizeMin = parseInt(document.getElementById('ballSizeMinSlider').value);
+    config.ballSizeMax = parseInt(document.getElementById('ballSizeMaxSlider').value);
+    config.ballSpeedMin = parseFloat(document.getElementById('ballSpeedMinSlider').value);
+    config.ballSpeedMax = parseFloat(document.getElementById('ballSpeedMaxSlider').value);
+    config.ballCount = parseInt(document.getElementById('ballCountSlider').value);
+    config.blinkSensitivity = parseFloat(document.getElementById('blinkSensitivitySlider').value);
+    
+    // Обновляем отображаемые значения
+    document.getElementById('ballSizeValue').textContent = `${config.ballSizeMin}-${config.ballSizeMax}`;
+    document.getElementById('ballSpeedValue').textContent = `${config.ballSpeedMin.toFixed(1)}-${config.ballSpeedMax.toFixed(1)}`;
+    document.getElementById('ballCountValue').textContent = config.ballCount;
+    document.getElementById('blinkSensitivityValue').textContent = config.blinkSensitivity;
+}
+
+// Обновленная функция обработки результатов FaceMesh
+// Обновленная функция обработки результатов FaceMesh
+faceMesh.onResults((results) => {
+    if (!gameState.isPlaying || !results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+        elements.cursor.style.display = 'none';
+        return;
+    }
+    
+    elements.cursor.style.display = 'block';
+    const landmarks = results.multiFaceLandmarks[0];
+    
+    // Получаем ключевые точки лица
+    const noseTip = landmarks[1];       // Кончик носа
+    const leftFace = landmarks[234];    // Левая граница лица
+    const rightFace = landmarks[454];   // Правая граница лица
+    const noseBridge = landmarks[6];    // Переносица
+    
+    // 1. Рассчитываем базовую позицию курсора по кончику носа
+    let x = noseTip.x * window.innerWidth;
+    let y = noseTip.y * window.innerHeight;
+    
+    // 2. Определяем поворот головы
+    const faceCenterX = (leftFace.x + rightFace.x) / 2;
+    const noseOffset = noseBridge.x - faceCenterX; // >0 если голова повернута вправо
+    
+    // 3. Корректируем позицию с учетом поворота головы
+    // Умножаем на -1, чтобы курсор двигался в ту же сторону
+    const turnAdjustment = -noseOffset * config.turnSensitivity * 300;
+    x += turnAdjustment;
+    
+    // 4. Ограничиваем позицию в пределах экрана
+    x = Math.max(0, Math.min(window.innerWidth, x));
+    y = Math.max(0, Math.min(window.innerHeight, y));
+    
+    // Устанавливаем позицию курсора
+    elements.cursor.style.left = `${x}px`;
+    elements.cursor.style.top = `${y}px`;
+    
+    // Детекция моргания
+    detectBlink(landmarks, x, y);
+});
+// Инициализация слайдеров
+function initSettingsPanel() {
+    // Установка значений слайдеров
+    document.getElementById('ballSizeMinSlider').value = config.ballSizeMin;
+    document.getElementById('ballSizeMaxSlider').value = config.ballSizeMax;
+    document.getElementById('ballSpeedMinSlider').value = config.ballSpeedMin;
+    document.getElementById('ballSpeedMaxSlider').value = config.ballSpeedMax;
+    document.getElementById('ballCountSlider').value = config.ballCount;
+    document.getElementById('blinkSensitivitySlider').value = config.blinkSensitivity;
+    
+    // Обновление конфига при изменении слайдеров
+    const sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(slider => {
+        slider.addEventListener('input', updateConfigFromSliders);
+    });
+    
+    // Переключение панели настроек
+    document.getElementById('settings-toggle').addEventListener('click', () => {
+        document.getElementById('settings-panel').classList.toggle('active');
+    });
+    
+    // Инициализация значений
+    updateConfigFromSliders();
+}
+
+// Детекция моргания
+function detectBlink(landmarks, cursorX, cursorY) {
+    const getEyeOpenness = (indices) => Math.abs(landmarks[indices[0]].y - landmarks[indices[1]].y);
+    
+    const leftEye = getEyeOpenness([159, 145]);
+    const rightEye = getEyeOpenness([386, 374]);
+    const avgOpenness = (leftEye + rightEye) / 2;
+    
+    // Калибровка
+    if (gameState.eyeBaseline === null) {
+        gameState.eyeHistory.push(avgOpenness);
+        if (gameState.eyeHistory.length > 30) {
+            gameState.eyeBaseline = gameState.eyeHistory.reduce((a, b) => a + b, 0) / gameState.eyeHistory.length;
+        }
+        return;
+    }
+    
+    // Проверка моргания
+    const normalized = avgOpenness / gameState.eyeBaseline;
+    if (normalized < (1 - config.blinkSensitivity * 0.5) && 
+        Date.now() - gameState.lastBlink > config.blinkDelay) {
+        gameState.lastBlink = Date.now();
+        handleBlink(cursorX, cursorY);
+    }
+}
+
+// Вспомогательная функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Обработка моргания (клика)
+function handleBlink(x, y) {
+    elements.cursor.style.transform = 'scale(1.5)';
+    elements.cursor.style.backgroundColor = '#00aa00';
+    setTimeout(() => {
+        elements.cursor.style.transform = 'scale(1)';
+        elements.cursor.style.backgroundColor = 'red';
+    }, 200);
+    
+    if (checkBallHit(x, y)) {
+        // Попадание по шарику уже обработано в checkBallHit
+    }
+}
+
+// Отправка результатов на сервер
+async function submitScore(name, score) {
+    try {
+        const response = await fetch(`${API_URL}/submit/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') // Для Django CSRF защиты
+            },
+            body: JSON.stringify({
+                name: name,
+                score: score
+            })
+        });
+        
+        if (!response.ok) {
+            console.error('Ошибка при отправке результатов');
+        }
+    } catch (error) {
+        console.error('Ошибка сети:', error);
+    }
+}
+// Загрузка турнирной таблицы
+// Обновленная функция загрузки турнирной таблицы
+async function fetchLeaderboard() {
+    try {
+        const response = await fetch(`${API_URL}/leaderboard/`);
+        if (response.ok) {
+            const scores = await response.json();
+            displayLeaderboard(scores);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки таблицы лидеров:', error);
+        elements.scoresList.innerHTML = '<p>Не удалось загрузить таблицу лидеров</p>';
+    }
+}
+
+/// Обновленная функция отображения таблицы лидеров
+function displayLeaderboard(scores) {
+    if (!scores || !scores.length) {
+        elements.scoresList.innerHTML = '<p>Пока нет результатов</p>';
+        return;
+    }
+    
+    let html = '<table style="width:100%; border-collapse: collapse;">';
+    html += '<tr><th style="text-align:left">Место</th><th style="text-align:left">Игрок</th><th style="text-align:right">Очки</th><th style="text-align:right">Дата</th></tr>';
+    
+    scores.forEach((item, index) => {
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td style="text-align:right">${item.score}</td>
+                <td style="text-align:right">${item.date}</td>
+            </tr>
+        `;
+    });
+    
+    html += '</table>';
+    elements.scoresList.innerHTML = html;
+}
+
+// Вспомогательные функции
+function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+}
+
+function getRandomColor() {
+    const colors = [
+        '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
+        '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', 
+        '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', 
+        '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// Обработчики событий
+elements.startButton.addEventListener('click', startGame);
+elements.restartButton.addEventListener('click', startGame);
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    // Проверка поддержки API
+    if (!('mediaDevices' in navigator) || !('getUserMedia' in navigator.mediaDevices)) {
+        alert('Ваш браузер не поддерживает доступ к камере');
+        elements.startButton.disabled = true;
+    }
+});
+</script>
+{% endblock %}

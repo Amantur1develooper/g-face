@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Head-Controlled Cursor{% endblock %}
+
+{% block content %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GFace - Управление компьютером взглядом</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2980b9;
+        }
+        .logo {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .tagline {
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .feature {
+            flex-basis: 48%;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .advantage-card {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .risks {
+            background-color: #fde8e8;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .risk-item {
+            margin-bottom: 15px;
+        }
+        .cta {
+            text-align: center;
+            background-color: #3498db;
+            color: white;
+            padding: 30px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">GFace</div>
+        <div class="tagline">Технологии, которые открывают мир</div>
+        <p>Инновационное решение для управления компьютером движениями головы и взглядом</p>
+    </header>
+
+    <div class="section">
+        <h2>О проекте</h2>
+        <p>GFace — это революционная система, позволяющая людям с ограниченными физическими возможностями получить полноценный доступ к компьютеру. Наша технология использует движения головы, лица и зрачков для управления курсором, обеспечивая независимость и свободу цифрового взаимодействия.</p>
+        
+        <h3>Как это работает</h3>
+        <div class="features">
+            <div class="feature">
+                <h4>Гарнитура с ИК-подсветкой</h4>
+                <p>Специальная камера с инфракрасной подсветкой отслеживает движения глаз и головы пользователя с высокой точностью.</p>
+            </div>
+            <div class="feature">
+                <h4>Алгоритмы компьютерного зрения</h4>
+                <p>Пара "блик / светоотражение" на каждом глазу анализируется сложными алгоритмами, вычисляя направление взгляда и преобразуя его в команды.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Почему это важно</h2>
+        <p>В Кыргызстане около 200,000 людей с ограниченными возможностями сталкиваются с барьерами в цифровой среде. Существующие решения часто:</p>
+        <ul>
+            <li>Слишком дороги для большинства пользователей</li>
+            <li>Не адаптированы к местным языкам и сервисам</li>
+            <li>Сложны в настройке и использовании</li>
+        </ul>
+        <p>GFace устраняет эти проблемы, предлагая доступное, простое в использовании и локализованное решение.</p>
+    </div>
+
+    <div class="section">
+        <h2>Наш продукт и его преимущества</h2>
+        <table>
+            <tr>
+                <th>Аспект</th>
+                <th>Что предлагаем</th>
+            </tr>
+            <tr>
+                <td>Гарнитура</td>
+                <td>Камера с ИК-подсветкой, эргономичный дизайн, простая установка</td>
+            </tr>
+            <tr>
+                <td>Программное обеспечение</td>
+                <td>Продвинутые алгоритмы компьютерного зрения, интуитивный интерфейс, кросс-платформенность, легкая настройка под пользователя</td>
+            </tr>
+            <tr>
+                <td>Пользовательская ценность</td>
+                <td>Самостоятельный набор текста, работа, социальные сети, просмотр видео без посторонней помощи</td>
+            </tr>
+            <tr>
+                <td>Ключевые преимущества</td>
+                <td>Простая калибровка, совместимость с популярными ОС и приложениями, масштабируемость под разные потребности</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Бизнес-модель</h2>
+        <h3>Канва Osterwalder</h3>
+        <div class="advantages">
+            <div class="advantage-card">
+                <h4>Целевые сегменты</h4>
+                <ul>
+                    <li>Пользователи с ОВЗ</li>
+                    <li>Реабилитационные центры</li>
+                    <li>Благотворительные фонды</li>
+                    <li>Родственники людей с инвалидностью</li>
+                </ul>
+            </div>
+            <div class="advantage-card">
+                <h4>Ценностное предложение</h4>
+                <ul>
+                    <li>Независимость пользователей</li>
+                    <li>Доступная цена</li>
+                    <li>Регулярные обновления ПО</li>
+                    <li>Локализация для Кыргызстана</li>
+                </ul>
+            </div>
+            <div class="advantage-card">
+                <h4>Каналы распространения</h4>
+                <ul>
+                    <li>Веб-сайт</li>
+                    <li>Партнёрства с медицинскими учреждениями</li>
+                    <li>Участие в выставках</li>
+                    <li>Социальные сети</li>
+                </ul>
+            </div>
+            <div class="advantage-card">
+                <h4>Взаимоотношения с клиентами</h4>
+                <ul>
+                    <li>Круглосуточная техподдержка</li>
+                    <li>Обучающие вебинары</li>
+                    <li>Сообщество пользователей</li>
+                    <li>Персональные консультации</li>
+                </ul>
+            </div>
+            <div class="advantage-card">
+                <h4>Источники дохода</h4>
+                <ul>
+                    <li>Продажа гарнитур</li>
+                    <li>Рассрочка</li>
+                    <li>Лицензии для клиник</li>
+                    <li>Гранты и субсидии</li>
+                    <li>Платные расширения функционала</li>
+                </ul>
+            </div>
+        </div>
+        <p><strong>Бюджет проекта:</strong> 742,000 сом (ПО/гарнитура 50%, маркетинг 20%, продажи 15%, прочее 15%)</p>
+    </div>
+
+    <div class="section">
+        <h2>Наши сильные стороны</h2>
+        <div class="advantages">
+            <div class="advantage-card">
+                <h4>Социальная миссия</h4>
+                <p>Повышенная вероятность получения грантов и государственной поддержки благодаря ясной социальной направленности проекта.</p>
+            </div>
+            <div class="advantage-card">
+                <h4>Оптимальный бюджет</h4>
+                <p>Относительно невысокие стартовые затраты для hardware+software стартапа.</p>
+            </div>
+            <div class="advantage-card">
+                <h4>Мультисегментность</h4>
+                <p>Работаем как с конечными пользователями (B2C), так и с организациями (B2B), что снижает рыночные риски.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section risks">
+        <h2>Риски и вызовы</h2>
+        <div class="risk-item">
+            <h4>Технологические</h4>
+            <p>Точность трекинга взгляда на бюджетной оптике; калибровка при разных глазных патологиях.</p>
+        </div>
+        <div class="risk-item">
+            <h4>Производственные</h4>
+            <p>Сложность локального производства гарнитур, сертификация как медицинского изделия.</p>
+        </div>
+        <div class="risk-item">
+            <h4>Конкуренция</h4>
+            <p>Международные игроки (Tobii, PCEye) с готовыми решениями. Наше УТП: доступная цена, локализация, сервис.</p>
+        </div>
+        <div class="risk-item">
+            <h4>Маркетинг</h4>
+            <p>Доступ к целевой аудитории: как быстро выйти на реабилитационные центры и стать частью их протоколов.</p>
+        </div>
+        <div class="risk-item">
+            <h4>Финансы</h4>
+            <p>50% бюджета уходит на R&D; важно оценить запас ликвидности на 2-й год для массового производства и сервиса.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Возможности для развития</h2>
+        <ol>
+            <li><strong>Локализация</strong> - speech-to-text для кыргызского и русского языков как преимущество перед импортными решениями.</li>
+            <li><strong>Модульный SaaS</strong> - открытый API для интеграции взгляд-контроля в сторонние приложения (игры, реабилитационный софт).</li>
+            <li><strong>Сертификация</strong> - получение статуса Assistive Technology для льгот и субсидий от Минсоцтруда.</li>
+            <li><strong>Партнёрства с вузами</strong> - сотрудничество с университетами для исследовательских улучшений (магистерские проекты по CV/UX).</li>
+            <li><strong>Программа Trade-in</strong> - стимулирование повторных продаж через апгрейд старых версий гарнитуры.</li>
+        </ol>
+    </div>
+
+    <div class="cta">
+        <h2>Хотите узнать больше или поддержать проект?</h2>
+        <p>Мы открыты для сотрудничества, инвестиций и партнёрств. Давайте вместе сделаем технологии доступными для всех!</p>
+        <a href="#contact" class="cta-button">Связаться с нами</a>
+    </div>
+
+   
+{% endblock content %}
